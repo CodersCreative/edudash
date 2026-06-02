@@ -1,0 +1,11 @@
+[project]
+name = "edudash"
+version = "0.1.0"
+dependencies = [
+  "PyQt6"
+]
+
+extend-exclude = [
+  "*.pyc",
+  "__pycache__"
+]
