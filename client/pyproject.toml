@@ -2,7 +2,8 @@
 name = "edudash"
 version = "0.1.0"
 dependencies = [
-  "PyQt6"
+  "PySide6",
+  "requests"
 ]
 
 extend-exclude = [
