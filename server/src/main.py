@@ -1,12 +1,10 @@
-import random
 from flask import Flask, Response, json, request, jsonify, send_file
-from model_database import CodingChallenges, CodingChallengesChecks, CodingChallengesStatements, db, User
+from model_database import TEACHER_ROLE, Activity, Punishment, Reward, UserActivity, db, User
 from flask_cors import CORS
 from typing import Optional
 import bcrypt
-import os
 
-from utils import get_project_root
+from utils import get_project_path
 
 app = Flask(__name__)
 CORS(app)
@@ -26,13 +24,13 @@ def register():
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
-    is_teacher : bool = data.get("is_teacher")
+    role : int = data.get("role")
     password = bcrypt.hashpw(password.encode(), bcrypt.gensalt());
 
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email already exists"}), 409
 
-    user = User(username=username, email=email, password=password, is_teacher=is_teacher)
+    user = User(username=username, email=email, password=password, role=role)
     db.session.add(user)
     db.session.commit()
     return jsonify({"message": "User registered successfully"}), 201
@@ -50,6 +48,58 @@ def login():
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
+@app.route("/activity", methods=["POST"])
+def create_activity():
+    data = request.get_json()
+    user_id : int = data.get("user_id")
+    name = data.get("name")
+    description = data.get("description")
+    type = data.get("type")
+
+    activity = Activity(name=name, description=description, type=type)
+    user_activity = UserActivity(user_id=user_id, activity_id=activity.id, role=TEACHER_ROLE)
+    db.session.add_all([activity, user_activity])
+    db.session.commit()
+    return jsonify({"message": "Activity created successfully"}), 201
+
+@app.route("/punish", methods=["POST"])
+def punish():
+    data = request.get_json()
+    user_id : int = data.get("user_id")
+    teacher_id : int = data.get("teacher_id")
+    reason = data.get("reason")
+    points : int = data.get("points")
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    user.points -= points;
+    punishment = Punishment(user_id=user_id, teacher_id=teacher_id, reason=reason, points=points)
+    db.session.add(punishment)
+    db.session.commit()
+    return jsonify({"message": "Punishment created successfully"}), 201
+
+@app.route("/reward", methods=["POST"])
+def reward():
+    data = request.get_json()
+    user_id : int = data.get("user_id")
+    teacher_id : int = data.get("teacher_id")
+    activity_id : int | None = data.get("activity_id")
+    reason = data.get("reason")
+    points : int = data.get("points")
+    user = User.query.get(user_id);
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404    
+
+    user.points += points;
+    reward = Reward(user_id=user_id, teacher_id=teacher_id, activity_id=activity_id, reason=reason, points=points)
+    db.session.add(reward)
+    db.session.commit()
+    return jsonify({"message": "Reward created successfully"}), 201
+
+
 @app.route("/profile/picture", methods=["POST"])
 def set_profile_picture():
     id = json.load(request.files["json"])["user_id"]
@@ -58,7 +108,7 @@ def set_profile_picture():
     if not f.filename:
         return jsonify({"error": "Filename required"}), 401
 
-    name = f"{get_project_root()}/src/profiles/{id}_{f.filename}";
+    name = f"{get_project_path()}/src/profiles/{id}_{f.filename}";
 
     f.save(name)
     user = User.query.filter_by(id=id).first()
@@ -75,7 +125,7 @@ def set_profile_picture():
 def get_profile_picture():
     data = request.get_json()
     id = data.get("id")
-    user = User.query.filter_by(id=id).first()
+    user = User.query.get(id)
 
     if not user:
         return jsonify({'message': 'User not found'}), 404
