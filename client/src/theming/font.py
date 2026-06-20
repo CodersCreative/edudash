@@ -1,15 +1,17 @@
 from dataclasses import dataclass, field
 from PySide6.QtGui import QColor, QFont
 
+
 @dataclass
 class Font:
-    small : QFont
-    default : QFont
-    sub_heading : QFont 
-    heading : QFont
-    large : QFont
-    extra_large : QFont 
-    gigantic : QFont
+    small: QFont
+    default: QFont
+    sub_heading: QFont
+    heading: QFont
+    large: QFont
+    extra_large: QFont
+    gigantic: QFont
+
 
 def get_default_font() -> Font:
     return Font(
@@ -22,9 +24,9 @@ def get_default_font() -> Font:
         gigantic=QFont("Roboto", pointSize=120, weight=QFont.Weight.Bold),
     )
 
-font = get_default_font();
+
+font = get_default_font()
+
 
 def get_current_font() -> Font:
-    return font;
-
-
+    return font

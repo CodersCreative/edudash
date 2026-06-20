@@ -1,7 +1,14 @@
 from typing import Callable, Optional
 from PySide6.QtWidgets import (
-    QWidget, QGridLayout, QFrame, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QLineEdit, QMessageBox
+    QWidget,
+    QGridLayout,
+    QFrame,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QLineEdit,
+    QMessageBox,
 )
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QCursor, QIcon
@@ -17,7 +24,7 @@ import routes
 class SignUpScreen(QWidget):
     def __init__(self):
         super().__init__()
-        self.open_login : Optional[Callable[[], None]] = None;
+        self.open_login: Optional[Callable[[], None]] = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -39,11 +46,15 @@ class SignUpScreen(QWidget):
         left_layout.setContentsMargins(40, 40, 40, 40)
 
         title_label = QLabel("Sign Up")
-        title_label.setStyleSheet(STYLES["titleTextInverted"] + "; background: transparent;")
+        title_label.setStyleSheet(
+            STYLES["titleTextInverted"] + "; background: transparent;"
+        )
         title_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         description = QLabel("Enter your details to create a new account")
-        description.setStyleSheet(STYLES["normalTextInverted"] + "; background: transparent;")
+        description.setStyleSheet(
+            STYLES["normalTextInverted"] + "; background: transparent;"
+        )
         description.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         left_layout.addWidget(title_label, alignment=Qt.AlignmentFlag.AlignTop)
@@ -141,6 +152,7 @@ class SignUpScreen(QWidget):
         # Send to backend
         try:
             from constants import SERVER_URL
+
             response = requests.post(
                 SERVER_URL + "register",
                 json={
@@ -148,14 +160,16 @@ class SignUpScreen(QWidget):
                     "email": email,
                     "password": password,
                 },
-                timeout=5
+                timeout=5,
             )
             if response.status_code == 201:
-                QMessageBox.information(self, "Success", "Account created successfully!")
+                QMessageBox.information(
+                    self, "Success", "Account created successfully!"
+                )
                 if routes.open_login:
                     routes.open_login()
             else:
-                msg = response.json().get('message', 'Registration failed.')
+                msg = response.json().get("message", "Registration failed.")
                 QMessageBox.warning(self, "Failed", msg)
         except Exception as e:
             print("Registration error:", e)

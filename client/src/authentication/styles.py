@@ -10,7 +10,6 @@ STYLES = {
             qproperty-alignment: 'AlignCenter';
         }}
     """,
-
     "titleTextInverted": f"""
         QLabel {{
             font-size: 36px;
@@ -20,7 +19,6 @@ STYLES = {
             qproperty-alignment: 'AlignCenter';
         }}
     """,
-    
     "normalText": f"""
         QLabel {{
            
@@ -31,7 +29,6 @@ STYLES = {
             qproperty-alignment: 'AlignCenter';
         }}
     """,
-
     "normalTextInverted": f"""
         QLabel {{
            
@@ -42,7 +39,6 @@ STYLES = {
             qproperty-alignment: 'AlignCenter';
         }}
     """,
-
     "button": f"""
         QPushButton {{
             font-size: 14px;
@@ -62,7 +58,6 @@ STYLES = {
             color: {theme.background_alternative.name()};
         }}
     """,
-
     "mainbutton": f"""
         QPushButton {{
             font-size: 14px;
@@ -83,7 +78,6 @@ STYLES = {
             color: {theme.text.name()};
         }}
     """,
-
     "buttonCircle": f"""
         QPushButton {{
             background: transparent;
@@ -100,7 +94,6 @@ STYLES = {
             background-color: {theme.text.name()};
         }}
     """,
-
     "textHint": f"""
         QLabel {{
             font-size: 14px;
@@ -108,7 +101,6 @@ STYLES = {
             margin-left: 10px;
         }}
     """,
-
     "textBox": f"""
         QLineEdit, QPlainTextEdit {{
             font-size: 14px;
@@ -117,7 +109,6 @@ STYLES = {
             margin-left: 10px;
         }}
     """,
-
     "imgClose": """
         QLabel {
             width: 30px;
@@ -128,5 +119,5 @@ STYLES = {
         QLabel:hover {
             transform: scale(1.1); /* won't work in QSS, may need animation or event handler */
         }
-    """
+    """,
 }

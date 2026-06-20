@@ -2,7 +2,16 @@ from typing import Callable, Optional
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QPixmap, QIcon
-from PySide6.QtWidgets import QWidget, QGridLayout, QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit
+from PySide6.QtWidgets import (
+    QWidget,
+    QGridLayout,
+    QFrame,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QLineEdit,
+)
 import os
 import requests
 import routes
@@ -26,10 +35,11 @@ def show_messagebox(parent, icon, title, text):
     else:
         QtWidgets.QMessageBox(icon, title, text, parent=parent).exec()
 
+
 class LoginScreen(QWidget):
     def __init__(self):
         super().__init__()
-        self.open_signup : Optional[Callable[[], None]] = None;
+        self.open_signup: Optional[Callable[[], None]] = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -51,11 +61,15 @@ class LoginScreen(QWidget):
         left_layout.setContentsMargins(40, 40, 40, 40)
 
         title_label = QLabel("Sign Up")
-        title_label.setStyleSheet(STYLES["titleTextInverted"] + "; background: transparent;")
+        title_label.setStyleSheet(
+            STYLES["titleTextInverted"] + "; background: transparent;"
+        )
         title_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         description = QLabel("Enter your personal info and create new account")
-        description.setStyleSheet(STYLES["normalTextInverted"]  + "; background: transparent;")
+        description.setStyleSheet(
+            STYLES["normalTextInverted"] + "; background: transparent;"
+        )
         description.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         sign_up_btn = QPushButton("Sign Up")
@@ -83,7 +97,6 @@ class LoginScreen(QWidget):
         top_bar = QHBoxLayout()
         top_bar.setContentsMargins(0, 0, 0, 0)
         top_bar.addStretch()
-
 
         close_btn = QPushButton()
         close_btn.setFixedSize(30, 30)
@@ -141,32 +154,56 @@ class LoginScreen(QWidget):
         password = self.password_input.text().strip()
 
         if not email or not password:
-            show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Input Error", "Please enter both email and password.")
+            show_messagebox(
+                self,
+                QtWidgets.QMessageBox.Icon.Warning,
+                "Input Error",
+                "Please enter both email and password.",
+            )
             return
 
         try:
             from constants import SERVER_URL
+
             response = requests.post(
                 SERVER_URL + "login",
                 json={"email": email, "password": password},
-                timeout=5
+                timeout=5,
             )
 
             if response.status_code == 200:
-                show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Success", "Logged in successfully!")
+                show_messagebox(
+                    self,
+                    QtWidgets.QMessageBox.Icon.Information,
+                    "Success",
+                    "Logged in successfully!",
+                )
 
-                # if routes.open_dashboard:
-                #     if routes.set_user:
-                #         routes.set_user(str(response.json().get('id', 0)), response.json().get('username', email.split('@')[0]))
-                #     routes.open_dashboard()
+                if routes.open_dashboard:
+                    if routes.set_user:
+                        routes.set_user(
+                            str(response.json().get("id", 0)),
+                            response.json().get("username", email.split("@")[0]),
+                        )
+                    routes.open_dashboard()
             else:
-                msg = response.json().get('message', 'Login failed.')
+                msg = response.json().get("message", "Login failed.")
                 show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Failed", msg)
         except Exception as e:
             print("Login error:", e)
-            show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Error", "Could not connect to server.")
+            show_messagebox(
+                self,
+                QtWidgets.QMessageBox.Icon.Warning,
+                "Error",
+                "Could not connect to server.",
+            )
 
     def handle_continue_without_signin(self):
-        show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Guest Login", "Continuing as guest.")
+        show_messagebox(
+            self,
+            QtWidgets.QMessageBox.Icon.Information,
+            "Guest Login",
+            "Continuing as guest.",
+        )
         if routes.open_dashboard:
             routes.open_dashboard()
