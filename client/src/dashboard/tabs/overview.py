@@ -127,7 +127,6 @@ class OverviewTab(BaseTab):
             }}
             QLabel:hover {{
                 text-decoration: underline;
-                cursor: pointer;
             }}
         """)
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)

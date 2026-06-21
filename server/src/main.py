@@ -1,26 +1,17 @@
-from flask import Flask, Response, json, request, jsonify, send_file
+from flask import json, request, jsonify, send_file
+from sqlalchemy import select, func
 from model_database import (
+    ADMIN_ROLE,
+    STUDENT_ROLE,
     TEACHER_ROLE,
     Activity,
-    Punishment,
-    Reward,
     UserActivity,
     db,
     User,
 )
-from flask_cors import CORS
-from typing import Optional
 import bcrypt
-
 from utils import get_project_path
-
-app = Flask(__name__)
-CORS(app)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db.init_app(app)
+from app import app
 
 
 def create_tables():
@@ -34,10 +25,19 @@ def register():
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
-    role: int = data.get("role")
+    role: int | None = data.get("role")
     password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-    if User.query.filter_by(email=email).first():
+
+    existing_user = db.session.scalar(select(User).where(User.email == email))
+    if existing_user:
         return jsonify({"error": "Email already exists"}), 409
+
+    if role is None:
+        user_count = db.session.scalar(select(func.count()).select_from(User))
+        if user_count > 0:
+            role = STUDENT_ROLE
+        else:
+            role = ADMIN_ROLE
 
     user = User(username=username, email=email, password=password, role=role)
     db.session.add(user)
@@ -51,7 +51,7 @@ def login():
     email = data.get("email")
     password: str = data.get("password")
 
-    user = User.query.filter_by(email=email).first()
+    user = db.session.scalar(select(User).where(User.email == email))
 
     if user and bcrypt.checkpw(password.encode(), user.password):
         return jsonify(
@@ -83,52 +83,6 @@ def create_activity():
     return jsonify({"message": "Activity created successfully"}), 201
 
 
-@app.route("/punish", methods=["POST"])
-def punish():
-    data = request.get_json()
-    user_id: int = data.get("user_id")
-    teacher_id: int = data.get("teacher_id")
-    reason = data.get("reason")
-    points: int = data.get("points")
-    user = User.query.get(user_id)
-
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
-    user.points -= points
-    punishment = Punishment(
-        user_id=user_id, teacher_id=teacher_id, reason=reason, points=points
-    )
-    db.session.add(punishment)
-    db.session.commit()
-    return jsonify({"message": "Punishment created successfully"}), 201
-
-
-@app.route("/reward", methods=["POST"])
-def reward():
-    data = request.get_json()
-    user_id: int = data.get("user_id")
-    teacher_id: int = data.get("teacher_id")
-    activity_id: int | None = data.get("activity_id")
-    reason = data.get("reason")
-    points: int = data.get("points")
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
-    user.points += points
-    reward = Reward(
-        user_id=user_id,
-        teacher_id=teacher_id,
-        activity_id=activity_id,
-        reason=reason,
-        points=points,
-    )
-    db.session.add(reward)
-    db.session.commit()
-    return jsonify({"message": "Reward created successfully"}), 201
-
-
 @app.route("/profile/picture", methods=["POST"])
 def set_profile_picture():
     id = json.load(request.files["json"])["user_id"]
@@ -138,7 +92,7 @@ def set_profile_picture():
 
     name = f"{get_project_path()}/src/profiles/{id}_{f.filename}"
     f.save(name)
-    user = User.query.filter_by(id=id).first()
+    user = db.session.scalar(select(User).where(User.id == id))
 
     if not user:
         return jsonify({"message": "User not found"}), 404
@@ -153,7 +107,7 @@ def set_profile_picture():
 def get_profile_picture():
     data = request.get_json()
     id = data.get("id")
-    user = User.query.get(id)
+    user = db.session.scalar(select(User).where(User.id == id))
 
     if not user:
         return jsonify({"message": "User not found"}), 404
@@ -164,52 +118,12 @@ def get_profile_picture():
         return jsonify({"message": "User has no image"}), 401
 
 
-@app.route("/leaderboard", methods=["GET"])
-def get_leaderboard():
-    users = User.query.order_by(User.points.desc()).all()
-    leaderboard = []
-    for rank, user in enumerate(users, start=1):
-        leaderboard.append(
-            {"rank": rank, "username": user.username, "points": user.points}
-        )
-    return jsonify({"leaderboard": leaderboard}), 200
-
-
-@app.route("/points", methods=["POST"])
-def update_points():
-    data = request.get_json()
-    return update_users_points(data.get("points"), data.get("id"), data.get("email"))
-
-
-def get_username(id=None, email=None) -> Optional[str]:
-    user = None
-    if email is None:
-        user = User.query.filter_by(id=id).first()
-    elif id is None:
-        user = User.query.filter_by(email=email).first()
-
-    if not user:
-        return None
-
-    return user.username
-
-
-def update_users_points(new_points: int, id=None, email=None) -> tuple[Response, int]:
-    user = None
-    if email is None:
-        user = User.query.filter_by(id=id).first()
-    elif id is None:
-        user = User.query.filter_by(email=email).first()
-
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
-    if new_points > user.points:
-        user.points += new_points
-        db.session.commit()
-
-    return jsonify({"message": "Points updated"}), 200
-
+import routes.academics
+import routes.cultural
+import routes.overall
+import routes.punishments
+import routes.rewards
+import routes.sports
 
 if __name__ == "__main__":
     create_tables()
