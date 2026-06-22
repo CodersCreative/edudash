@@ -39,7 +39,6 @@ def show_messagebox(parent, icon, title, text):
 class LoginScreen(QWidget):
     def __init__(self):
         super().__init__()
-        self.open_signup: Optional[Callable[[], None]] = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -182,8 +181,12 @@ class LoginScreen(QWidget):
                 if routes.open_dashboard:
                     if routes.set_user:
                         routes.set_user(
-                            str(response.json().get("id", 0)),
-                            response.json().get("username", email.split("@")[0]),
+                            routes.User(
+                                response.json().get("username", email.split("@")[0]),
+                                response.json().get("id", 0),
+                                response.json().get("role", 0),
+                                response.json().get("points", 0),
+                            )
                         )
                     routes.open_dashboard()
             else:
@@ -195,7 +198,7 @@ class LoginScreen(QWidget):
                 self,
                 QtWidgets.QMessageBox.Icon.Warning,
                 "Error",
-                "Could not connect to server.",
+                e,
             )
 
     def handle_continue_without_signin(self):

@@ -33,8 +33,8 @@ def register():
         return jsonify({"error": "Email already exists"}), 409
 
     if role is None:
-        user_count = db.session.scalar(select(func.count()).select_from(User))
-        if user_count > 0:
+        count = db.session.scalar(select(func.count()).select_from(User)) or 0
+        if count > 0:
             role = STUDENT_ROLE
         else:
             role = ADMIN_ROLE
@@ -42,7 +42,16 @@ def register():
     user = User(username=username, email=email, password=password, role=role)
     db.session.add(user)
     db.session.commit()
-    return jsonify({"message": "User registered successfully"}), 201
+
+    return jsonify(
+        {
+            "message": "Registration successful",
+            "username": user.username,
+            "id": user.id,
+            "role": user.role,
+            "points": user.points,
+        }
+    )
 
 
 @app.route("/login", methods=["POST"])
@@ -59,6 +68,7 @@ def login():
                 "message": "Login successful",
                 "username": user.username,
                 "id": user.id,
+                "role": user.role,
                 "points": user.points,
             }
         )

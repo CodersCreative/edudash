@@ -162,12 +162,18 @@ class SignUpScreen(QWidget):
                 },
                 timeout=5,
             )
-            if response.status_code == 201:
-                QMessageBox.information(
-                    self, "Success", "Account created successfully!"
-                )
-                if routes.open_login:
-                    routes.open_login()
+            if response.status_code == 200:
+                if routes.open_dashboard:
+                    if routes.set_user:
+                        routes.set_user(
+                            routes.User(
+                                response.json().get("username", email.split("@")[0]),
+                                response.json().get("id", 0),
+                                response.json().get("role", 0),
+                                response.json().get("points", 0),
+                            )
+                        )
+                    routes.open_dashboard()
             else:
                 msg = response.json().get("message", "Registration failed.")
                 QMessageBox.warning(self, "Failed", msg)

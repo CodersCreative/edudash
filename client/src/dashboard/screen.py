@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QTabWidget,
 )
 from PySide6.QtGui import QFont
+import routes
 from theming.theme import theme
 from authentication.styles import STYLES
 
@@ -19,10 +20,11 @@ from .tabs.overview import OverviewTab
 
 
 class DashboardScreen(QWidget):
-    def __init__(self, username="Guest", user_id="0"):
+    def __init__(self):
         super().__init__()
-        self.username = username
-        self.user_id = user_id
+        self.user = None
+        if routes.get_user:
+            self.user = routes.get_user()
         self.setup_ui()
 
     def setup_ui(self):
@@ -54,8 +56,8 @@ class DashboardScreen(QWidget):
             }}
         """)
 
-        tab_widget.addTab(OverviewTab(), "Overview")
-        tab_widget.addTab(PointsTab(), "Points")
+        tab_widget.addTab(OverviewTab(self.user), "Overview")
+        tab_widget.addTab(PointsTab(self.user), "Points")
         tab_widget.addTab(LeaderboardTab(), "Leaderboard")
         tab_widget.addTab(LibraryTab(), "Library")
         tab_widget.addTab(CalendarTab(), "Calendar")
@@ -72,7 +74,11 @@ class DashboardScreen(QWidget):
         """)
         header_layout = QHBoxLayout(header)
 
-        title = QLabel(f"Hello, {self.username}!")
+        username = "Guest"
+        if self.user:
+            username = self.user.username
+
+        title = QLabel(f"Hello, {username}!")
         title.setStyleSheet(STYLES["titleText"])
         title.setFont(QFont("Arial", 24, QFont.Weight.Bold))
 

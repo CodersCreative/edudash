@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from utils import get_project_path
 from theming.theme import get_palette_from_theme, theme
 import routes
+from routes import User
 from constants import *
 import sys
 import subprocess
@@ -22,11 +23,11 @@ import os
 class Screens(QStackedWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = None
+        self.dock = None
+
         self.setup_routes()
         self.setup_screens()
-        self.dock = None
-        self.username = "Guest"
-        self.user_id = None
 
     def setup_routes(self):
         routes.open_signup = self.open_signup_screen
@@ -40,10 +41,12 @@ class Screens(QStackedWidget):
 
         self.login = LoginScreen()
         self.addWidget(self.login)
+
         from authentication.signup import SignUpScreen
 
         self.signup = SignUpScreen()
         self.addWidget(self.signup)
+
         from dashboard.screen import DashboardScreen
 
         self.dashboard = DashboardScreen()
@@ -67,17 +70,16 @@ class Screens(QStackedWidget):
 
         self.dashboard.close()
         self.removeWidget(self.dashboard)
-        self.dashboard = DashboardScreen(self.username, str(self.user_id))
+        self.dashboard = DashboardScreen()
         self.insertWidget(DASHBOARD, self.dashboard)
         self.open_screen(DASHBOARD)
 
-    def set_user(self, user_id: str, name: str):
-        self.user_id = user_id
-        os.environ["uid9"] = user_id
-        self.username = name
+    def set_user(self, user: User):
+        self.user = user
+        os.environ["uid9"] = str(user.id)
 
-    def get_user(self) -> tuple[str, str]:
-        return (str(self.user_id), self.username)
+    def get_user(self) -> User:
+        return self.user
 
 
 class ExtraMainScreen(QMainWindow):

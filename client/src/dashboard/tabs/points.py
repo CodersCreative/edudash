@@ -11,14 +11,16 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from assets import icons
+from routes import User
 from .base import BaseTab
 from authentication.styles import STYLES
 from theming.theme import theme
 
 
 class PointsTab(BaseTab):
-    def __init__(self):
+    def __init__(self, user: User | None = None):
         super().__init__()
+        self.user = user
         self.setup_ui()
 
     def setup_ui(self):
@@ -35,7 +37,11 @@ class PointsTab(BaseTab):
         )
         summary_layout = QHBoxLayout(summary_frame)
 
-        total_points_label = QLabel("345")
+        points = 0
+        if self.user:
+            points = self.user.points
+
+        total_points_label = QLabel(str(points))
         total_points_label.setStyleSheet(
             f"""
             QLabel {{
@@ -85,7 +91,7 @@ class PointsTab(BaseTab):
         history_layout.addWidget(history_title)
 
         history_table = QTableWidget()
-        history_table.setColumnCount(4)
+        history_table.setColumnCount(3)
         history_table.setRowCount(5)
         history_table.setHorizontalHeaderLabels(["Date", "Activity", "Points"])
         history_table.setStyleSheet(
@@ -123,7 +129,7 @@ class PointsTab(BaseTab):
                 item.setForeground(theme.secondary)
             else:
                 item.setForeground(theme.danger)
-            history_table.setItem(i, 3, item)
+            history_table.setItem(i, 2, item)
 
         history_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
@@ -202,7 +208,7 @@ class PointsTab(BaseTab):
         punishments_layout.addWidget(punishments_title)
 
         punishments_table = QTableWidget()
-        punishments_table.setColumnCount(4)
+        punishments_table.setColumnCount(3)
         punishments_table.setRowCount(3)
         punishments_table.setHorizontalHeaderLabels(["Date", "Reason", "Points"])
         punishments_table.setStyleSheet(

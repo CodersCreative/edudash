@@ -32,13 +32,13 @@ class User(db.Model):
     punishments: Mapped[list["Punishment"]] = relationship(
         "Punishment", foreign_keys="Punishment.user_id", back_populates="user"
     )
-    punishments_as_teacher: Mapped[list["Punishment"]] = relationship(
+    punishments_given: Mapped[list["Punishment"]] = relationship(
         "Punishment", foreign_keys="Punishment.teacher_id", back_populates="teacher"
     )
     rewards: Mapped[list["Reward"]] = relationship(
         "Reward", foreign_keys="Reward.user_id", back_populates="user"
     )
-    rewards_as_teacher: Mapped[list["Reward"]] = relationship(
+    rewards_given: Mapped[list["Reward"]] = relationship(
         "Reward", foreign_keys="Reward.teacher_id", back_populates="teacher"
     )
     activities: Mapped[list["UserActivity"]] = relationship(
@@ -64,7 +64,7 @@ class Punishment(db.Model):
         "User", foreign_keys=[user_id], back_populates="punishments"
     )
     teacher: Mapped["User"] = relationship(
-        "User", foreign_keys=[teacher_id], back_populates="punishments_as_teacher"
+        "User", foreign_keys=[teacher_id], back_populates="punishments_given"
     )
 
     def __repr__(self) -> str:
@@ -89,7 +89,7 @@ class Reward(db.Model):
         "User", foreign_keys=[user_id], back_populates="rewards"
     )
     teacher: Mapped["User"] = relationship(
-        "User", foreign_keys=[teacher_id], back_populates="rewards_as_teacher"
+        "User", foreign_keys=[teacher_id], back_populates="rewards_given"
     )
     activity: Mapped[Optional["Activity"]] = relationship(
         "Activity", back_populates="rewards"

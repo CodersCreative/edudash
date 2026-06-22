@@ -17,8 +17,9 @@ from theming.theme import theme
 
 
 class OverviewTab(BaseTab):
-    def __init__(self):
+    def __init__(self, user: User | None = None):
         super().__init__()
+        self.user = user
         self.setup_timer()
         self.setup_ui()
 
@@ -51,7 +52,11 @@ class OverviewTab(BaseTab):
         """)
         points_layout = QVBoxLayout(points_frame)
 
-        points_label = QLabel("345")
+        points = 0
+        if self.user:
+            points = self.user.points
+
+        points_label = QLabel(str(points))
         points_label.setStyleSheet(f"""
             QLabel {{
                 font-size: 64px;
@@ -69,9 +74,9 @@ class OverviewTab(BaseTab):
         leaderboard_layout.addWidget(leaderboard_title)
 
         table = QTableWidget()
-        table.setColumnCount(4)
+        table.setColumnCount(3)
         table.setRowCount(5)
-        table.setHorizontalHeaderLabels(["Rank", "Student", "Form", "Points"])
+        table.setHorizontalHeaderLabels(["Rank", "Student", "Points"])
         table.setStyleSheet(f"""
             QTableWidget {{
                 background: {theme.background.name()};
@@ -100,7 +105,7 @@ class OverviewTab(BaseTab):
         for i, (rank, name, points) in enumerate(students):
             table.setItem(i, 0, QTableWidgetItem(str(rank)))
             table.setItem(i, 1, QTableWidgetItem(name))
-            table.setItem(i, 3, QTableWidgetItem(str(points)))
+            table.setItem(i, 2, QTableWidgetItem(str(points)))
 
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         table.verticalHeader().setVisible(False)
