@@ -5,7 +5,8 @@ dependencies = [
   "flask",
   "flask_cors",
   "flask_sqlalchemy",
-  "bcrypt"
+  "bcrypt",
+  "google-books-api-wrapper"
 ]
 
 extend-exclude = [

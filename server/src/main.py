@@ -5,14 +5,15 @@ from model_database import (
     STUDENT_ROLE,
     TEACHER_ROLE,
     Activity,
+    Book,
     UserActivity,
     db,
     User,
 )
 import bcrypt
-from utils import get_project_path
+from utils import get_book_details, get_project_path
 from app import app
-
+import google_books_api_wrapper.api as books
 
 def create_tables():
     with app.app_context():
@@ -92,6 +93,32 @@ def create_activity():
     db.session.commit()
     return jsonify({"message": "Activity created successfully"}), 201
 
+
+@app.route("/book", methods=["POST"])
+def add_book():
+    data = json.load(request.files["json"])
+    id = data["user_id"]
+    book : books.Book | None = get_book_details(data["title"], data["isbn13"], data["isbn10"])
+
+    if not book:
+        return jsonify({"error": "Book details unable to be found"}), 401
+
+    f = request.files["file"]
+    if not f.filename:
+        return jsonify({"error": "Filename required"}), 401
+
+    file = f"{get_project_path()}/src/books/{book.authors[0]}/{book.title}"
+    f.save(file)
+
+    new_book = Book(user_id=id, isbn13=isbn13, title=book.title, description=book.description, file=name, author=book.authors[0])
+    db.session.add(new_book)
+    db.session.commit()
+
+    return jsonify(
+        {
+            "message": "Addition successful",
+        }
+    )
 
 @app.route("/profile/picture", methods=["POST"])
 def set_profile_picture():

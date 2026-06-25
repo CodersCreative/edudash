@@ -99,6 +99,23 @@ class Reward(db.Model):
         return f"<Reward +{self.points} because {self.reason} to {self.user_id}>"
 
 
+class Book(db.Model):
+    __tablename__ = "Book"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("User.id"), nullable=False)
+    isbn13 : Mapped[str] = mapped_column(String(120), nullable=True)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    file: Mapped[str] = mapped_column(String(248), nullable=True)
+    author: Mapped[str] = mapped_column(String(120), nullable=True)
+    user: Mapped["User"] = relationship(
+        "User", foreign_keys=[user_id], back_populates="rewards"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Book {self.name}>"
+
 class Activity(db.Model):
     __tablename__ = "Activity"
 
