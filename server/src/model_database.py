@@ -1,6 +1,6 @@
 from typing import Optional
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey, CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
@@ -103,18 +103,43 @@ class Book(db.Model):
     __tablename__ = "Book"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("User.id"), nullable=False)
-    isbn13 : Mapped[str] = mapped_column(String(120), nullable=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("User.id"), nullable=True)
+    isbn13: Mapped[str | None] = mapped_column(String(120), nullable=True)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
-    description: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    file: Mapped[str] = mapped_column(String(248), nullable=True)
-    author: Mapped[str] = mapped_column(String(120), nullable=True)
-    user: Mapped["User"] = relationship(
-        "User", foreign_keys=[user_id], back_populates="rewards"
+    description: Mapped[str | None] = mapped_column(String(1200), nullable=True)
+    file: Mapped[str] = mapped_column(String(248), nullable=False)
+    file_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    author: Mapped[str] = mapped_column(String(120), nullable=False)
+    is_public: Mapped[bool] = mapped_column(default=True, nullable=False)
+
+    owner: Mapped[Optional["User"]] = relationship("User", foreign_keys=[owner_id])
+
+    __table_args__ = (
+        CheckConstraint("file_type in ('pdf', 'epub', 'markdown')", name="book_file_type"),
+        UniqueConstraint("title", "author", "file", name="uq_book_resource"),
     )
 
     def __repr__(self) -> str:
-        return f"<Book {self.name}>"
+        return f"<Book {self.title}>"
+
+
+class BookProgress(db.Model):
+    __tablename__ = "BookProgress"
+
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("User.id"), primary_key=True, nullable=False
+    )
+    book_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("Book.id"), primary_key=True, nullable=False
+    )
+    page: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    scroll: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    user: Mapped["User"] = relationship("User")
+    book: Mapped["Book"] = relationship("Book")
+
+    def __repr__(self) -> str:
+        return f"<BookProgress user={self.user_id} book={self.book_id} page={self.page}>"
 
 class Activity(db.Model):
     __tablename__ = "Activity"

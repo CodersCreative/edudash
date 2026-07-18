@@ -1,4 +1,5 @@
 from pathlib import Path
+from werkzeug.utils import secure_filename
 from sqlalchemy import select, func
 from model_database import db, User, Activity, Reward
 from flask import Response, jsonify
@@ -98,3 +99,24 @@ def get_user_by_id_or_email(
 
 def get_project_path() -> Path:
     return Path(__file__).parent.parent
+
+
+def get_library_path() -> Path:
+    path = get_project_path() / "src" / "instance" / "library"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def allowed_book_extension(filename: str) -> bool:
+    return filename.rsplit(".", 1)[-1].lower() in {"pdf", "epub", "md", "markdown"}
+
+
+def normalize_book_extension(filename: str) -> str:
+    suffix = filename.rsplit(".", 1)[-1].lower()
+    return "markdown" if suffix in {"md", "markdown"} else suffix
+
+
+def safe_book_filename(title: str, author: str, filename: str) -> str:
+    base = secure_filename(f"{author}-{title}") or "book"
+    ext = filename.rsplit(".", 1)[-1].lower()
+    return f"{base}.{ext}"
