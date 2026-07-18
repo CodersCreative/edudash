@@ -11,4 +11,4 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
-GOOGLE_BOOKS_CLIENT = books.GoogleBooksAPI();
+GOOGLE_BOOKS_CLIENT = books.GoogleBooksAPI()

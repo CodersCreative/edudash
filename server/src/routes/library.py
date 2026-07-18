@@ -30,7 +30,7 @@ def add_book():
     isbn10 = (data.get("isbn10") or "").strip()
     description = data.get("description")
     author = data.get("author") or data.get("username")
-    
+
     f = request.files.get("file")
 
     if author is None or description is None:
@@ -57,14 +57,16 @@ def add_book():
 
     if f and f.filename:
         if not allowed_book_extension(f.filename):
-            return jsonify({"error": "Only markdown, pdf, and epub files are supported"}), 400
+            return jsonify(
+                {"error": "Only markdown, pdf, and epub files are supported"}
+            ), 400
 
         file_type = normalize_book_extension(f.filename)
         filename = safe_book_filename(title, author, f.filename)
         file_path = get_library_path() / filename
         f.save(file_path)
     else:
-        return jsonify({"error": "Expected a file"}), 400        
+        return jsonify({"error": "Expected a file"}), 400
 
     new_book = Book(
         owner_id=owner_id,
@@ -80,6 +82,7 @@ def add_book():
     db.session.commit()
 
     return jsonify({"message": "Book added successfully", "book_id": new_book.id}), 201
+
 
 @app.route("/book/all", methods=["GET"])
 def list_books():
@@ -117,6 +120,7 @@ def list_books():
 
     return jsonify({"books": results}), 200
 
+
 @app.route("/book/<int:book_id>/borrow", methods=["POST"])
 def borrow_book(book_id: int):
     data = request.get_json()
@@ -125,7 +129,7 @@ def borrow_book(book_id: int):
     if not book:
         return jsonify({"error": "Book not found"}), 404
     if book.owner_id == user_id:
-        return jsonify({"error": "You already own this book"}), 409    
+        return jsonify({"error": "You already own this book"}), 409
     if book.owner_id is not None:
         return jsonify({"error": "Book is already borrowed"}), 409
     book.owner_id = user_id
@@ -157,7 +161,7 @@ def download_book(book_id: int):
         return jsonify({"error": "Book not found"}), 404
     if book.owner_id != user_id:
         return jsonify({"error": "You do not currently have this book"}), 403
-    
+
     return send_file(book.file, as_attachment=False)
 
 
@@ -193,7 +197,9 @@ def set_book_progress(book_id: int):
         )
     )
     if not progress:
-        progress = BookProgress(user_id=int(user_id), book_id=book_id, page=page, scroll=scroll)
+        progress = BookProgress(
+            user_id=int(user_id), book_id=book_id, page=page, scroll=scroll
+        )
         db.session.add(progress)
     else:
         progress.page = page

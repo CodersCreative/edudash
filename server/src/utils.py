@@ -6,6 +6,7 @@ from flask import Response, jsonify
 import google_books_api_wrapper.api as books
 from app import GOOGLE_BOOKS_CLIENT
 
+
 def get_username(id: int | None = None, email: str | None = None) -> str | None:
     user = None
     if email is None:
@@ -18,17 +19,21 @@ def get_username(id: int | None = None, email: str | None = None) -> str | None:
 
     return user.username
 
-def get_book_details(title : str | None = None, isbn13: str | None = None, isbn10: str | None = None) -> books.Book | None:
+
+def get_book_details(
+    title: str | None = None, isbn13: str | None = None, isbn10: str | None = None
+) -> books.Book | None:
     try:
         if isbn10:
-            return GOOGLE_BOOKS_CLIENT.get_book_by_isbn10(isbn10);
+            return GOOGLE_BOOKS_CLIENT.get_book_by_isbn10(isbn10)
         elif isbn13:
-            return GOOGLE_BOOKS_CLIENT.get_book_by_isbn13(isbn13);
+            return GOOGLE_BOOKS_CLIENT.get_book_by_isbn13(isbn13)
         elif title:
-            return GOOGLE_BOOKS_CLIENT.get_book_by_title(title);
+            return GOOGLE_BOOKS_CLIENT.get_book_by_title(title)
     except Exception:
         return None
     return None
+
 
 def update_users_points(
     new_points: int, id: int | None = None, email: str | None = None

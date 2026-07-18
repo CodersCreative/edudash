@@ -34,6 +34,7 @@ except Exception:
 import requests
 from constants import SERVER_URL
 
+
 def get_book_progress(book_id: int, user_id: int) -> dict:
     response = requests.get(
         SERVER_URL + f"book/{book_id}/progress",
@@ -44,13 +45,16 @@ def get_book_progress(book_id: int, user_id: int) -> dict:
     return response.json()
 
 
-def set_book_progress(book_id: int, user_id: int, page: int = 0, scroll: int = 0) -> None:
+def set_book_progress(
+    book_id: int, user_id: int, page: int = 0, scroll: int = 0
+) -> None:
     response = requests.post(
         SERVER_URL + f"book/{book_id}/progress",
         json={"user_id": user_id, "page": page, "scroll": scroll},
         timeout=10,
     )
     response.raise_for_status()
+
 
 class BookReaderWidget(QWidget):
     def __init__(self, parent=None):
@@ -100,7 +104,9 @@ class BookReaderWidget(QWidget):
             self.pdf_view.setDocument(self.pdf_doc)
             self.pdf_view.setPageMode(QPdfView.PageMode.MultiPage)
             self.pdf_view.setZoomMode(QPdfView.ZoomMode.FitInView)
-            self.pdf_view.pageNavigator().currentPageChanged.connect(self.on_pdf_page_changed)
+            self.pdf_view.pageNavigator().currentPageChanged.connect(
+                self.on_pdf_page_changed
+            )
             self.pdf_doc.statusChanged.connect(self.on_pdf_status_changed)
             self.pdf_doc.pageCountChanged.connect(self.on_pdf_page_count_changed)
             self.stack.addWidget(self.pdf_view)
@@ -111,7 +117,9 @@ class BookReaderWidget(QWidget):
         self.layout.addWidget(self.stack)
         self.set_controls_visible(False)
 
-    def open_file(self, path: str | Path, book_id: int | None = None, user_id: int | None = None):
+    def open_file(
+        self, path: str | Path, book_id: int | None = None, user_id: int | None = None
+    ):
         self.current_path = Path(path)
         self.book_id = book_id
         self.user_id = user_id
@@ -162,7 +170,11 @@ class BookReaderWidget(QWidget):
             self.text.setPlainText("\n\n".join(fragments))
         else:
             with zipfile.ZipFile(path) as archive:
-                names = [n for n in archive.namelist() if n.endswith((".xhtml", ".html", ".htm"))]
+                names = [
+                    n
+                    for n in archive.namelist()
+                    if n.endswith((".xhtml", ".html", ".htm"))
+                ]
                 snippets = []
                 for name in names[:20]:
                     snippets.append(archive.read(name).decode("utf-8", errors="ignore"))
@@ -204,7 +216,9 @@ class BookReaderWidget(QWidget):
             return
         if self.pdf_doc.pageCount() <= 0:
             return
-        page = max(0, min(int(self.progress.get("page", 0) or 0), self.pdf_doc.pageCount() - 1))
+        page = max(
+            0, min(int(self.progress.get("page", 0) or 0), self.pdf_doc.pageCount() - 1)
+        )
         self.pdf_view.pageNavigator().jump(page, QPointF(0, 0))
         self.page_spin.blockSignals(True)
         self.page_spin.setMaximum(max(1, self.pdf_doc.pageCount()))
@@ -252,7 +266,11 @@ class BookReaderWidget(QWidget):
             self.page_spin.blockSignals(False)
 
     def jump_to_page_from_spin(self, value: int):
-        if self.pdf_view and self.pdf_doc and self.stack.currentWidget() == self.pdf_view:
+        if (
+            self.pdf_view
+            and self.pdf_doc
+            and self.stack.currentWidget() == self.pdf_view
+        ):
             self.pdf_view.pageNavigator().jump(value - 1, QPointF(0, 0))
 
     def previous_page(self):
@@ -262,7 +280,11 @@ class BookReaderWidget(QWidget):
                 self.pdf_view.pageNavigator().jump(current - 1, QPointF(0, 0))
 
     def next_page(self):
-        if self.pdf_view and self.pdf_doc and self.stack.currentWidget() == self.pdf_view:
+        if (
+            self.pdf_view
+            and self.pdf_doc
+            and self.stack.currentWidget() == self.pdf_view
+        ):
             current = self.pdf_view.pageNavigator().currentPage()
             if current < self.pdf_doc.pageCount() - 1:
                 self.pdf_view.pageNavigator().jump(current + 1, QPointF(0, 0))

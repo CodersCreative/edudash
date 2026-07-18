@@ -15,9 +15,11 @@ from utils import (
 )
 from app import app
 
+
 def create_tables():
     with app.app_context():
         db.create_all()
+
 
 @app.route("/register", methods=["POST"])
 def register():

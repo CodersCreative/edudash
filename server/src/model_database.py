@@ -103,7 +103,9 @@ class Book(db.Model):
     __tablename__ = "Book"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("User.id"), nullable=True)
+    owner_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("User.id"), nullable=True
+    )
     isbn13: Mapped[str | None] = mapped_column(String(120), nullable=True)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str | None] = mapped_column(String(1200), nullable=True)
@@ -115,7 +117,9 @@ class Book(db.Model):
     owner: Mapped[Optional["User"]] = relationship("User", foreign_keys=[owner_id])
 
     __table_args__ = (
-        CheckConstraint("file_type in ('pdf', 'epub', 'markdown')", name="book_file_type"),
+        CheckConstraint(
+            "file_type in ('pdf', 'epub', 'markdown')", name="book_file_type"
+        ),
         UniqueConstraint("title", "author", "file", name="uq_book_resource"),
     )
 
@@ -139,7 +143,10 @@ class BookProgress(db.Model):
     book: Mapped["Book"] = relationship("Book")
 
     def __repr__(self) -> str:
-        return f"<BookProgress user={self.user_id} book={self.book_id} page={self.page}>"
+        return (
+            f"<BookProgress user={self.user_id} book={self.book_id} page={self.page}>"
+        )
+
 
 class Activity(db.Model):
     __tablename__ = "Activity"

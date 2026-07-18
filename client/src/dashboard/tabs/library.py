@@ -69,10 +69,10 @@ def add_book(
     user_id: int,
     file_path: str,
     title: str | None = None,
-    description: str | None = None,    
-    author: str | None = None,    
+    description: str | None = None,
+    author: str | None = None,
     isbn13: str | None = None,
-    isbn10: str | None = None,    
+    isbn10: str | None = None,
 ) -> requests.Response:
     file_name = Path(file_path).name
     with open(file_path, "rb") as handle:
@@ -96,10 +96,14 @@ def add_book(
         return requests.post(SERVER_URL + "book", files=files, timeout=20)
 
 
-def download_book(user_id: int,book_id: int) -> Path:
-    response = requests.get(SERVER_URL + f"book/{book_id}/download", json={
+def download_book(user_id: int, book_id: int) -> Path:
+    response = requests.get(
+        SERVER_URL + f"book/{book_id}/download",
+        json={
             "user_id": user_id,
-        }, timeout=20)
+        },
+        timeout=20,
+    )
     response.raise_for_status()
     suffix = response.headers.get("content-type", "").split("/")[-1]
     if "pdf" in suffix:
@@ -150,16 +154,20 @@ class LibraryBookCard(QFrame):
             borrow_btn.setStyleSheet(STYLES["button"])
             borrow_btn.clicked.connect(lambda: self.on_borrow(book))
             actions.addWidget(borrow_btn)
-        elif routes.get_user and routes.get_user() and book.owner_id == routes.get_user().id:
-                open_btn = QPushButton("Read")
-                open_btn.setStyleSheet(STYLES["mainbutton"])
-                open_btn.clicked.connect(lambda: self.on_open(book))
-                actions.addWidget(open_btn)            
+        elif (
+            routes.get_user
+            and routes.get_user()
+            and book.owner_id == routes.get_user().id
+        ):
+            open_btn = QPushButton("Read")
+            open_btn.setStyleSheet(STYLES["mainbutton"])
+            open_btn.clicked.connect(lambda: self.on_open(book))
+            actions.addWidget(open_btn)
 
-                return_btn = QPushButton("Return")
-                return_btn.setStyleSheet(STYLES["button"])
-                return_btn.clicked.connect(lambda: self.on_return(book))
-                actions.addWidget(return_btn)
+            return_btn = QPushButton("Return")
+            return_btn.setStyleSheet(STYLES["button"])
+            return_btn.clicked.connect(lambda: self.on_return(book))
+            actions.addWidget(return_btn)
 
         layout.addWidget(title)
         layout.addWidget(author)
@@ -181,7 +189,9 @@ class FindTab(QWidget):
 
         search_row = QHBoxLayout()
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search title, author, description, or format")
+        self.search_input.setPlaceholderText(
+            "Search title, author, description, or format"
+        )
         self.search_input.setStyleSheet(STYLES["textBox"])
         self.search_input.textChanged.connect(self.library.refresh_books)
         self.available_only = QPushButton("Available only")
@@ -246,7 +256,7 @@ class ImportTab(QWidget):
         file_row.addWidget(browse_btn)
         layout.addWidget(self.import_title)
         layout.addWidget(self.import_isbn13)
-        layout.addWidget(self.import_isbn10)        
+        layout.addWidget(self.import_isbn10)
         layout.addLayout(file_row)
         layout.addWidget(import_btn)
         root.addWidget(import_box)
@@ -263,7 +273,9 @@ class ReadTab(QWidget):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(12)
 
-        self.reader_info = QLabel("Choose a book from Find or use the open action to load it here.")
+        self.reader_info = QLabel(
+            "Choose a book from Find or use the open action to load it here."
+        )
         self.reader_info.setWordWrap(True)
         root.addWidget(self.reader_info)
         root.addWidget(self.library.reader, 1)
@@ -277,7 +289,7 @@ class SelfPublishTab(QWidget):
 
     def import_file(self):
         self.file.setText(self.library.pick_file())
-        
+
     def add_book(self):
         self.library.add_book(True)
 
@@ -388,7 +400,9 @@ class LibraryTab(BaseTab):
             self.find_tab.results_layout.addWidget(empty)
             return
         for book in self.current_books:
-            card = LibraryBookCard(book, self.open_book, self.borrow_selected, self.return_selected)
+            card = LibraryBookCard(
+                book, self.open_book, self.borrow_selected, self.return_selected
+            )
             self.find_tab.results_layout.addWidget(card)
         self.find_tab.results_layout.addStretch()
 
@@ -406,7 +420,7 @@ class LibraryTab(BaseTab):
         if not user:
             QMessageBox.warning(self, "Library", "Please sign in to borrow books.")
             return
-        
+
         try:
             path = download_book(book.id, user.id)
         except Exception as exc:
@@ -430,7 +444,9 @@ class LibraryTab(BaseTab):
             QMessageBox.information(self, "Library", "Book checked out.")
             self.refresh_books()
         else:
-            QMessageBox.warning(self, "Library", response.json().get("error", "Could not borrow."))
+            QMessageBox.warning(
+                self, "Library", response.json().get("error", "Could not borrow.")
+            )
 
     def return_selected(self, book):
         user = routes.get_user() if routes.get_user else None
@@ -443,15 +459,23 @@ class LibraryTab(BaseTab):
             QMessageBox.information(self, "Library", "Book returned.")
             self.refresh_books()
         else:
-            QMessageBox.warning(self, "Library", response.json().get("error", "Could not return."))
+            QMessageBox.warning(
+                self, "Library", response.json().get("error", "Could not return.")
+            )
 
-    def add_book(self, self_publish : bool):
+    def add_book(self, self_publish: bool):
         user = routes.get_user() if routes.get_user else None
         if not user:
-            QMessageBox.warning(self, "Library", "Please sign in to self-publish books.")
+            QMessageBox.warning(
+                self, "Library", "Please sign in to self-publish books."
+            )
             return
-        
-        file_path = self.upload_tab.file.text().strip() if self_publish else self.import_tab.file.text().strip()
+
+        file_path = (
+            self.upload_tab.file.text().strip()
+            if self_publish
+            else self.import_tab.file.text().strip()
+        )
         if not file_path:
             QMessageBox.warning(self, "Library", "Choose a resource file first.")
             return
@@ -461,7 +485,8 @@ class LibraryTab(BaseTab):
                 user_id=user.id,
                 title=self.upload_tab.publish_title.text().strip(),
                 description=self.upload_tab.publish_desc.toPlainText().strip(),
-                author=self.upload_tab.publish_author.text().strip() or routes.get_user().username,
+                author=self.upload_tab.publish_author.text().strip()
+                or routes.get_user().username,
                 file_path=file_path,
             )
             if response.ok:
@@ -471,7 +496,9 @@ class LibraryTab(BaseTab):
                 self.upload_tab.file.clear()
                 self.refresh_books()
             else:
-                QMessageBox.warning(self, "Library", response.json().get("error", "Could not publish."))
+                QMessageBox.warning(
+                    self, "Library", response.json().get("error", "Could not publish.")
+                )
         else:
             response = add_book(
                 user_id=user.id,
@@ -489,4 +516,6 @@ class LibraryTab(BaseTab):
                 self.import_tab.file.clear()
                 self.refresh_books()
             else:
-                QMessageBox.warning(self, "Library", response.json().get("error", "Could not publish."))   
+                QMessageBox.warning(
+                    self, "Library", response.json().get("error", "Could not publish.")
+                )
