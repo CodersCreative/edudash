@@ -383,8 +383,8 @@ class LibraryTab(BaseTab):
                 self.find_tab.search_input.text().strip(),
                 self.find_tab.available_only.isChecked(),
             )
-        except Exception as exc:
-            QMessageBox.warning(self, "Library", f"Could not load books: {exc}")
+        except Exception as e:
+            QMessageBox.warning(self, "Library", f"Could not load books: {e}")
             self.current_books = []
         self.render_books()
 
@@ -423,8 +423,8 @@ class LibraryTab(BaseTab):
 
         try:
             path = download_book(book.id, user.id)
-        except Exception as exc:
-            QMessageBox.warning(self, "Reader", f"Could not open book: {exc}")
+        except Exception as e:
+            QMessageBox.warning(self, "Reader", f"Could not open book: {e}")
             return
 
         self.local_temp_file = path

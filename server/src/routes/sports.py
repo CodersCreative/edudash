@@ -1,6 +1,10 @@
 from flask import jsonify, request
 from model_database import SPORTING_TYPE
-from utils import get_points_by_activity_type, get_leaderboard_by_activity_type
+from utils import (
+    get_points_by_activity_type,
+    get_leaderboard_by_activity_type,
+    get_user_by_id_or_email,
+)
 from app import app
 
 

@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from sqlalchemy import select, func
 from model_database import db, User, Reward
+from utils import get_user_by_id_or_email
 from app import app
 
 

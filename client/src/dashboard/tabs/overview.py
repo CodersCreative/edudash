@@ -11,9 +11,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from PySide6.QtCore import Qt, QTimer
+import requests
 from .base import BaseTab
 from authentication.styles import STYLES
 from theming.theme import theme
+from constants import SERVER_URL
 
 
 class OverviewTab(BaseTab):
@@ -22,6 +24,56 @@ class OverviewTab(BaseTab):
         self.user = user
         self.setup_timer()
         self.setup_ui()
+        self.load_overview_data()
+
+    def load_overview_data(self):
+        if self.user:
+            self.load_user_points()
+        self.load_leaderboard()
+
+    def load_user_points(self):
+        try:
+            response = requests.get(
+                SERVER_URL + "overall/points",
+                json={"user_id": self.user.id},
+                timeout=10,
+            )
+
+            if response.ok:
+                data = response.json()
+                self.points_label.setText(str(data.get("points", 0)))
+
+        except Exception as e:
+            print(f"Error loading user points: {e}")
+
+    def load_leaderboard(self):
+        try:
+            response = requests.get(SERVER_URL + "overall/leaderboard", timeout=10)
+            if response.ok:
+                data = response.json()
+                leaderboard = data.get("leaderboard", [])
+                self.populate_leaderboard(leaderboard)
+        except Exception as e:
+            print(f"Error loading leaderboard: {e}")
+
+    def populate_leaderboard(self, leaderboard):
+        self.table.setRowCount(len(leaderboard))
+        
+        if not leaderboard:
+            self.table.setRowCount(1)
+            item = QTableWidgetItem("No data available")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setItem(0, 0, item)
+            self.table.setSpan(0, 0, 1, 3)
+            return
+
+        for i, entry in enumerate(leaderboard):
+            rank = entry.get("rank", i + 1)
+            username = entry.get("username", "Unknown")
+            points = entry.get("points", 0)
+            self.table.setItem(i, 0, QTableWidgetItem(str(rank)))
+            self.table.setItem(i, 1, QTableWidgetItem(username))
+            self.table.setItem(i, 2, QTableWidgetItem(str(points)))
 
     def setup_timer(self):
         self.timer = QTimer()
@@ -56,28 +108,27 @@ class OverviewTab(BaseTab):
         if self.user:
             points = self.user.points
 
-        points_label = QLabel(str(points))
-        points_label.setStyleSheet(f"""
+        self.points_label = QLabel(str(points))
+        self.points_label.setStyleSheet(f"""
             QLabel {{
                 font-size: 64px;
                 font-weight: bold;
                 color: {theme.background.name()};
             }}
         """)
-        points_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.points_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        points_layout.addWidget(points_label)
+        points_layout.addWidget(self.points_label)
         leaderboard_layout.addWidget(points_frame)
 
         leaderboard_title = QLabel("Leaderboard")
         leaderboard_title.setStyleSheet(STYLES["titleText"])
         leaderboard_layout.addWidget(leaderboard_title)
 
-        table = QTableWidget()
-        table.setColumnCount(3)
-        table.setRowCount(5)
-        table.setHorizontalHeaderLabels(["Rank", "Student", "Points"])
-        table.setStyleSheet(f"""
+        self.table = QTableWidget()
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(["Rank", "Student", "Points"])
+        self.table.setStyleSheet(f"""
             QTableWidget {{
                 background: {theme.background.name()};
                 color: {theme.text.name()};
@@ -94,22 +145,11 @@ class OverviewTab(BaseTab):
             }}
         """)
 
-        students = [
-            (1, "Lorem Ipsum", 520),
-            (2, "Lorem Ipsum", 485),
-            (3, "Lorem Ipsum", 470),
-            (4, "Lorem Ipsum", 455),
-            (5, "Lorem Ipsum", 440),
-        ]
-
-        for i, (rank, name, points) in enumerate(students):
-            table.setItem(i, 0, QTableWidgetItem(str(rank)))
-            table.setItem(i, 1, QTableWidgetItem(name))
-            table.setItem(i, 2, QTableWidgetItem(str(points)))
-
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        table.verticalHeader().setVisible(False)
-        leaderboard_layout.addWidget(table)
+        self.table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.table.verticalHeader().setVisible(False)
+        leaderboard_layout.addWidget(self.table)
 
         timer_frame = QFrame()
         timer_frame.setStyleSheet(f"""
