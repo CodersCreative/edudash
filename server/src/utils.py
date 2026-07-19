@@ -75,7 +75,7 @@ def get_points_by_activity_type(user_id: int, activity_type: int) -> int:
 
 
 def get_leaderboard_by_activity_type(activity_type: int) -> list[dict]:
-    users = db.session.scalars(select(User)).all()
+    users = db.session.scalars(select(User).where(User.role < 3)).all()
     leaderboard = []
 
     for user in users:

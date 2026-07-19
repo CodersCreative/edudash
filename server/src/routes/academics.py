@@ -22,5 +22,8 @@ def get_academic_points():
     if not user:
         return jsonify({"message": "User not found"}), 404
 
+    if user.role >= 3:
+        return jsonify({"points": 0}), 200
+
     points = get_points_by_activity_type(user.id, ACADEMIC_TYPE)
     return jsonify({"points": points}), 200

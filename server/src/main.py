@@ -78,23 +78,6 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
 
 
-@app.route("/activity", methods=["POST"])
-def create_activity():
-    data = request.get_json()
-    user_id: int = data.get("user_id")
-    name = data.get("name")
-    description = data.get("description")
-    type = data.get("type")
-
-    activity = Activity(name=name, description=description, type=type)
-    user_activity = UserActivity(
-        user_id=user_id, activity_id=activity.id, role=TEACHER_ROLE
-    )
-    db.session.add_all([activity, user_activity])
-    db.session.commit()
-    return jsonify({"message": "Activity created successfully"}), 201
-
-
 @app.route("/profile/picture", methods=["POST"])
 def set_profile_picture():
     id = json.load(request.files["json"])["user_id"]
@@ -130,6 +113,21 @@ def get_profile_picture():
         return jsonify({"message": "User has no image"}), 401
 
 
+@app.route("/users", methods=["GET"])
+def get_all_users():
+    users = db.session.scalars(select(User)).all()
+    user_list = [
+        {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role,
+        }
+        for user in users
+    ]
+    return jsonify({"users": user_list}), 200
+
+
 import routes.academics
 import routes.cultural
 import routes.overall
@@ -137,6 +135,7 @@ import routes.punishments
 import routes.rewards
 import routes.sports
 import routes.library
+import routes.activity
 
 if __name__ == "__main__":
     create_tables()

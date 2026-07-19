@@ -57,11 +57,14 @@ class DashboardScreen(QWidget):
         """)
 
         tab_widget.addTab(OverviewTab(self.user), "Overview")
-        tab_widget.addTab(PointsTab(self.user), "Points")
         tab_widget.addTab(LeaderboardTab(), "Leaderboard")
         tab_widget.addTab(LibraryTab(), "Library")
         tab_widget.addTab(CalendarTab(), "Calendar")
-        tab_widget.addTab(TeacherTab(), "Teacher")
+
+        if self.user and self.user.role >= 3:
+            tab_widget.addTab(TeacherTab(), "Teacher")
+        else:
+            tab_widget.addTab(PointsTab(self.user), "Points")
 
         main_layout.addWidget(tab_widget)
 

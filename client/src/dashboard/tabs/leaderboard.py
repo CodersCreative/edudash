@@ -31,9 +31,7 @@ class LeaderboardTab(BaseTab):
         self.leaderboard_type = QComboBox()
         self.leaderboard_type.addItems(["Overall", "Academics", "Sports", "Cultures"])
         self.leaderboard_type.setStyleSheet(STYLES["textBox"])
-        self.leaderboard_type.currentTextChanged.connect(
-            self.load_leaderboard
-        )
+        self.leaderboard_type.currentTextChanged.connect(self.load_leaderboard)
         selector_layout.addWidget(self.leaderboard_type)
         selector_layout.addStretch()
 

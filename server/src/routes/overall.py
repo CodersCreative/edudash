@@ -7,7 +7,9 @@ from app import app
 
 @app.route("/overall/leaderboard", methods=["GET"])
 def get_overall_leaderboard():
-    users = db.session.scalars(select(User).order_by(User.points.desc())).all()
+    users = db.session.scalars(
+        select(User).where(User.role < 3).order_by(User.points.desc())
+    ).all()
     leaderboard = []
     for rank, user in enumerate(users, start=1):
         leaderboard.append(
@@ -23,6 +25,9 @@ def get_overall_points():
 
     if not user:
         return jsonify({"message": "User not found"}), 404
+
+    if user.role >= 3:
+        return jsonify({"points": 0}), 200
 
     return jsonify({"points": user.points}), 200
 

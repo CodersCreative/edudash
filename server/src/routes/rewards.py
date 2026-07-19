@@ -7,7 +7,7 @@ from app import app
 
 @app.route("/reward/leaderboard", methods=["GET"])
 def get_reward_leaderboard():
-    users = db.session.scalars(select(User)).all()
+    users = db.session.scalars(select(User).where(User.role < 3)).all()
     leaderboard = []
 
     for user in users:
@@ -36,6 +36,9 @@ def get_reward_points():
 
     if not user:
         return jsonify({"message": "User not found"}), 404
+
+    if user.role >= 3:
+        return jsonify({"points": 0}), 200
 
     points = (
         db.session.scalar(
@@ -83,6 +86,9 @@ def reward():
     user = db.session.scalar(select(User).where(User.id == user_id))
     if not user:
         return jsonify({"message": "User not found"}), 404
+
+    if user.role >= 3:
+        return jsonify({"message": "Cannot give rewards to teachers or admins"}), 403
 
     user.points += points
     reward = Reward(

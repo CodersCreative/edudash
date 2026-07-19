@@ -27,7 +27,7 @@ class OverviewTab(BaseTab):
         self.load_overview_data()
 
     def load_overview_data(self):
-        if self.user:
+        if self.user and self.user.role < 3:
             self.load_user_points()
         self.load_leaderboard()
 
@@ -58,7 +58,7 @@ class OverviewTab(BaseTab):
 
     def populate_leaderboard(self, leaderboard):
         self.table.setRowCount(len(leaderboard))
-        
+
         if not leaderboard:
             self.table.setRowCount(1)
             item = QTableWidgetItem("No data available")
@@ -95,31 +95,32 @@ class OverviewTab(BaseTab):
         """)
         leaderboard_layout = QVBoxLayout(leaderboard_frame)
 
-        points_frame = QFrame()
-        points_frame.setStyleSheet(f"""
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-            stop:0 {theme.primary.name()}, stop:1 {theme.secondary.name()});
-            border-radius: 15px;
-            padding: 10px;
-        """)
-        points_layout = QVBoxLayout(points_frame)
+        if not self.user or self.user.role < 3:
+            points_frame = QFrame()
+            points_frame.setStyleSheet(f"""
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                stop:0 {theme.primary.name()}, stop:1 {theme.secondary.name()});
+                border-radius: 15px;
+                padding: 10px;
+            """)
+            points_layout = QVBoxLayout(points_frame)
 
-        points = 0
-        if self.user:
-            points = self.user.points
+            points = 0
+            if self.user:
+                points = self.user.points
 
-        self.points_label = QLabel(str(points))
-        self.points_label.setStyleSheet(f"""
-            QLabel {{
-                font-size: 64px;
-                font-weight: bold;
-                color: {theme.background.name()};
-            }}
-        """)
-        self.points_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.points_label = QLabel(str(points))
+            self.points_label.setStyleSheet(f"""
+                QLabel {{
+                    font-size: 64px;
+                    font-weight: bold;
+                    color: {theme.background.name()};
+                }}
+            """)
+            self.points_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        points_layout.addWidget(self.points_label)
-        leaderboard_layout.addWidget(points_frame)
+            points_layout.addWidget(self.points_label)
+            leaderboard_layout.addWidget(points_frame)
 
         leaderboard_title = QLabel("Leaderboard")
         leaderboard_title.setStyleSheet(STYLES["titleText"])
