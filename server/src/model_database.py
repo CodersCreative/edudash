@@ -1,6 +1,14 @@
 from typing import Optional
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Integer, ForeignKey, CheckConstraint, UniqueConstraint
+from sqlalchemy import (
+    String,
+    Integer,
+    ForeignKey,
+    CheckConstraint,
+    UniqueConstraint,
+    DateTime,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
@@ -16,6 +24,9 @@ ACADEMIC_TYPE = 0
 CULTURAL_TYPE = 1
 SPORTING_TYPE = 2
 OVERALL_TYPE = 3
+
+PERSONAL_CALENDAR_TYPE = 0
+ACTIVITY_CALENDAR_TYPE = 1
 
 
 class User(db.Model):
@@ -43,6 +54,9 @@ class User(db.Model):
     )
     activities: Mapped[list["UserActivity"]] = relationship(
         "UserActivity", back_populates="user"
+    )
+    personal_calendar: Mapped[Optional["Calendar"]] = relationship(
+        "Calendar", back_populates="owner", foreign_keys="Calendar.owner_id"
     )
 
     def __repr__(self) -> str:
@@ -160,6 +174,9 @@ class Activity(db.Model):
     user_activities: Mapped[list["UserActivity"]] = relationship(
         "UserActivity", back_populates="activity"
     )
+    calendar: Mapped[Optional["Calendar"]] = relationship(
+        "Calendar", back_populates="activity", foreign_keys="Calendar.activity_id"
+    )
 
     def __repr__(self) -> str:
         return f"<Activity {self.name}>"
@@ -183,3 +200,58 @@ class UserActivity(db.Model):
 
     def __repr__(self) -> str:
         return f"<UserActivity {self.user_id} to {self.activity_id}>"
+
+
+class Calendar(db.Model):
+    __tablename__ = "Calendar"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    type: Mapped[int] = mapped_column(Integer, nullable=False)
+    owner_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("User.id"), nullable=True
+    )
+    activity_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("Activity.id"), nullable=True
+    )
+
+    owner: Mapped[Optional["User"]] = relationship(
+        "User", back_populates="personal_calendar", foreign_keys=[owner_id]
+    )
+    activity: Mapped[Optional["Activity"]] = relationship(
+        "Activity", back_populates="calendar", foreign_keys=[activity_id]
+    )
+    events: Mapped[list["Event"]] = relationship("Event", back_populates="calendar")
+
+    __table_args__ = (
+        CheckConstraint(
+            "(owner_id IS NOT NULL AND activity_id IS NULL) OR (owner_id IS NULL AND activity_id IS NOT NULL)",
+            name="calendar_owner_or_activity",
+        ),
+    )
+
+    def __repr__(self) -> str:
+        return f"<Calendar {self.name}>"
+
+
+class Event(db.Model):
+    __tablename__ = "Event"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    start_time: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    end_time: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    location: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    calendar_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("Calendar.id"), nullable=False
+    )
+    is_synced: Mapped[bool] = mapped_column(default=False, nullable=False)
+    source_event_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    activity_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    calendar: Mapped["Calendar"] = relationship("Calendar", back_populates="events")
+
+    def __repr__(self) -> str:
+        return f"<Event {self.title} at {self.start_time}>"

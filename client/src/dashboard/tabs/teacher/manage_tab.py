@@ -19,6 +19,7 @@ import routes
 from authentication.styles import STYLES
 from theming.theme import theme
 from constants import SERVER_URL
+from .calendar_tab import CalendarTab
 
 
 class ManageTab(QFrame):
@@ -59,15 +60,18 @@ class ManageTab(QFrame):
         self.members_panel = self.create_members_panel()
         self.rewards_panel = self.create_rewards_panel()
         self.punishments_panel = self.create_punishments_panel()
+        self.calendar_panel = CalendarTab(self)
 
         self.details_tabs.addTab(self.members_panel, "Members")
         self.details_tabs.addTab(self.rewards_panel, "Rewards")
         self.details_tabs.addTab(self.punishments_panel, "Punishments")
+        self.details_tabs.addTab(self.calendar_panel, "Calendar")
 
         layout.addWidget(self.details_tabs)
 
     def set_activity_id(self, activity_id):
         self.current_activity_id = activity_id
+        self.calendar_panel.set_activity_id(activity_id)
         self.load_activity_details()
 
     def load_activity_details(self):

@@ -152,6 +152,7 @@ import routes.rewards
 import routes.sports
 import routes.library
 import routes.activity
+import routes.calendar
 
 if __name__ == "__main__":
     create_tables()
