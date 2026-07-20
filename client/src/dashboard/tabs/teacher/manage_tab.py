@@ -29,6 +29,7 @@ class ManageTab(QFrame):
             self.user = routes.get_user()
         self.current_activity_id = None
         self.current_members = []
+        self.current_students = []
         self.setup_ui()
 
     def setup_ui(self):
@@ -331,8 +332,15 @@ class ManageTab(QFrame):
             if response.ok:
                 data = response.json()
                 self.current_members = data.get("members", [])
-                self.populate_members_table()
-                self.populate_member_combos()
+
+            response = requests.get(SERVER_URL + f"users/students", timeout=10)
+            if response.ok:
+                data = response.json()
+                self.current_students = data.get("users", [])
+
+            self.populate_members_table()
+            self.populate_member_combos()
+
         except Exception as e:
             print(f"Error loading members: {e}")
 
@@ -412,9 +420,14 @@ class ManageTab(QFrame):
             username = member.get("username", "Unknown")
             user_id = member.get("user_id")
 
-            self.user_combo.addItem(username, user_id)
             self.reward_member_combo.addItem(username, user_id)
             self.punishment_member_combo.addItem(username, user_id)
+
+        for user in self.current_students:
+            username = user.get("username", "Unknown")
+            user_id = user.get("id")
+
+            self.user_combo.addItem(username, user_id)
 
     def populate_rewards_table(self, rewards):
         self.rewards_table.setRowCount(len(rewards))
@@ -479,7 +492,7 @@ class ManageTab(QFrame):
         try:
             response = requests.post(
                 SERVER_URL + f"activity/{self.current_activity_id}/members",
-                json={"user_id": user_id, "role": role},
+                json={"user_id": int(user_id), "role": role},
                 timeout=10,
             )
             if response.ok:

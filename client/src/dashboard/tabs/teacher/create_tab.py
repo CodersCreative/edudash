@@ -16,11 +16,12 @@ from constants import SERVER_URL
 
 
 class CreateTab(QFrame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, on_load_activites=None):
         super().__init__(parent)
         self.user = None
         if routes.get_user:
             self.user = routes.get_user()
+        self.on_load_activities = on_load_activites
         self.setup_ui()
 
     def setup_ui(self):
@@ -103,7 +104,8 @@ class CreateTab(QFrame):
                 )
                 self.name_input.clear()
                 self.desc_input.clear()
-                self.parent().parent().load_activities()
+                if self.on_load_activities:
+                    self.on_load_activities()
             else:
                 QMessageBox.warning(
                     self,

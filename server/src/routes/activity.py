@@ -153,3 +153,59 @@ def remove_user_from_activity(activity_id, user_id):
     db.session.commit()
 
     return jsonify({"message": "User removed from activity successfully"}), 200
+
+
+@app.route("/activity/user", methods=["GET"])
+def get_user_activities():
+    data = request.get_json()
+    user_id: int | None = data.get("user_id")
+
+    if not user_id:
+        return jsonify({"message": "User ID is required"}), 400
+
+    user = get_user_by_id_or_email(user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    user_activities = db.session.scalars(
+        select(UserActivity).where(UserActivity.user_id == user_id)
+    ).all()
+
+    activities_data = []
+    for ua in user_activities:
+        activity = db.session.scalar(
+            select(Activity).where(Activity.id == ua.activity_id)
+        )
+        if not activity:
+            continue
+
+        members = []
+        activity_user_activities = db.session.scalars(
+            select(UserActivity).where(UserActivity.activity_id == activity.id)
+        ).all()
+
+        for member_ua in activity_user_activities:
+            member_user = db.session.scalar(
+                select(User).where(User.id == member_ua.user_id)
+            )
+            if member_user:
+                members.append(
+                    {
+                        "user_id": member_user.id,
+                        "username": member_user.username,
+                        "role": member_ua.role,
+                    }
+                )
+
+        activities_data.append(
+            {
+                "id": activity.id,
+                "name": activity.name,
+                "description": activity.description,
+                "type": activity.type,
+                "role": ua.role,
+                "members": members,
+            }
+        )
+
+    return jsonify({"activities": activities_data}), 200

@@ -128,6 +128,22 @@ def get_all_users():
     return jsonify({"users": user_list}), 200
 
 
+@app.route("/users/students", methods=["GET"])
+def get_all_students():
+    users = db.session.scalars(select(User)).all()
+    user_list = [
+        {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role,
+        }
+        for user in users
+        if user.role < TEACHER_ROLE
+    ]
+    return jsonify({"users": user_list}), 200
+
+
 import routes.academics
 import routes.cultural
 import routes.overall

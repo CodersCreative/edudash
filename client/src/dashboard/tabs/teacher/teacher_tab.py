@@ -35,7 +35,7 @@ class TeacherTab(BaseTab):
             }}
         """)
 
-        self.create_tab = CreateTab(self)
+        self.create_tab = CreateTab(self, self.load_activities)
         self.activities_tab = ActivitiesTab(self, self.open_activity_details)
         self.manage_tab = ManageTab(self)
 

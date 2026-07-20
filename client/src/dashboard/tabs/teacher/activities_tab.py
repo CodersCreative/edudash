@@ -13,7 +13,7 @@ import requests
 import routes
 from authentication.styles import STYLES
 from theming.theme import theme
-from constants import SERVER_URL
+from constants import SERVER_URL, ACTIVITY_TYPE_NAMES
 
 
 class ActivitiesTab(QFrame):
@@ -83,8 +83,6 @@ class ActivitiesTab(QFrame):
             self.activities_table.setSpan(0, 0, 1, 4)
             return
 
-        type_names = {0: "Academic", 1: "Cultural", 2: "Sports"}
-
         for i, activity in enumerate(activities):
             name = activity.get("name", "Unknown")
             activity_type = activity.get("type", 0)
@@ -92,7 +90,9 @@ class ActivitiesTab(QFrame):
 
             self.activities_table.setItem(i, 0, QTableWidgetItem(name))
             self.activities_table.setItem(
-                i, 1, QTableWidgetItem(type_names.get(activity_type, "Unknown"))
+                i,
+                1,
+                QTableWidgetItem(ACTIVITY_TYPE_NAMES.get(activity_type, "Unknown")),
             )
 
             try:
