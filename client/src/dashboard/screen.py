@@ -17,7 +17,7 @@ from .tabs.teacher import TeacherTab
 from .tabs.leaderboard import LeaderboardTab
 from .tabs.calendar import CalendarTab
 from .tabs.overview import OverviewTab
-from .tabs.activity import ActivityTab
+from .tabs.student.student_tab import StudentTab
 
 
 class DashboardScreen(QWidget):
@@ -65,7 +65,7 @@ class DashboardScreen(QWidget):
         if self.user and self.user.role >= 3:
             tab_widget.addTab(TeacherTab(), "Teacher")
         else:
-            tab_widget.addTab(ActivityTab(self.user), "Activities")
+            tab_widget.addTab(StudentTab(self.user), "Activities")
             tab_widget.addTab(PointsTab(self.user), "Points")
 
         main_layout.addWidget(tab_widget)
